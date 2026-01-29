@@ -10,6 +10,7 @@ import { Scenario3 } from './scenarios/scenario3';
 
 // --- State ---
 let currentScenario: Scenario | null = null;
+let currentScenarioId = '1';
 const scenarios: { [key: string]: { new(): Scenario } } = {
     '1': Scenario1,
     '2': Scenario2,
@@ -105,9 +106,11 @@ const tab2 = document.getElementById('tab-2')!;
 const tab3 = document.getElementById('tab-3')!;
 const titleEl = document.getElementById('scenario-title')!;
 const descEl = document.getElementById('scenario-desc')!;
+const restartBtn = document.getElementById('restart-btn')!;
 
 function setActiveTab(id: string) {
     // Reset all
+    currentScenarioId = id;
     [tab1, tab2, tab3].forEach(t => t.classList.remove('active'));
 
     if (id === '1') {
@@ -138,6 +141,10 @@ tab2.onclick = () => {
 tab3.onclick = () => {
     loadScenario('3');
     setActiveTab('3');
+};
+
+restartBtn.onclick = () => {
+    loadScenario(currentScenarioId);
 };
 
 // Initial load
