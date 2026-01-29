@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Twin Paradox Visualization</title>
+  </head>
+  <body>
+    <div id="main-layout">
+      <div id="tab-bar">
+        <button id="tab-1" class="tab active">Scenario 1: Relay</button>
+        <button id="tab-2" class="tab">Scenario 2: Symmetric</button>
+        <button id="tab-3" class="tab">Scenario 3: Asymmetric</button>
+      </div>
+
+      <div id="tab-panel">
+        <div id="canvas-container"></div>
+
+        <div id="overlay-ui">
+          <h1 id="scenario-title">Twin Paradox Relay</h1>
+          <p id="scenario-desc">
+            Comparing stationary clock S with the sum of times from L (outbound)
+            and R (inbound).
+          </p>
+          <div id="readouts"></div>
+        </div>
+
+        <div id="controls-container"></div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
