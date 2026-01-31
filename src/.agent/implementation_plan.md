@@ -1,8 +1,14 @@
-The user wants to remove "extraneous lines" from Scenario 2 and Scenario 3 animations, while keeping the "lines at 120 degrees". The "lines at 120 degrees" refer to the star-shaped tracks for the observers, which are separated by 120 degrees. The "extraneous lines" are identified as the `THREE.GridHelper`.
+The user wants to modify Scenario 4 so that all observers (S, L, R) travel the **same distance** `D` but at different speeds ($v, 2v, 4v$).
+This implies they will return at different times. S (slowest) will return last.
 
 ## Plan
 
-1.  **Modify `src/scenarios/scenario2.ts`**:
-    - Remove the `THREE.GridHelper` instantiation and addition to the scene.
-2.  **Modify `src/scenarios/scenario3.ts`**:
-    - Remove the `THREE.GridHelper` instantiation and addition to the scene.
+1.  **Modify `src/scenarios/scenario4.ts`**:
+    - Update `update` method:
+      - Use a single `distance` `D` for all observers.
+      - Calculate specific `v`, `gamma`, `tHalf`, and `tTotal` for each observer.
+      - Determine position of each observer independently based on `timeLab`.
+      - Simulation finishes when the slowest observer (S) returns.
+    - Update `createTracks` to just draw lines of sufficient length (e.g. max slider distance).
+2.  **Modify `src/main.ts`**:
+    - Update the description text for Tab 4 to reflect "Same Distance, Different Speeds".

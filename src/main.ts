@@ -7,6 +7,7 @@ import type { Scenario } from './scenarios/types';
 import { Scenario1 } from './scenarios/scenario1';
 import { Scenario2 } from './scenarios/scenario2';
 import { Scenario3 } from './scenarios/scenario3';
+import { Scenario4 } from './scenarios/scenario4';
 
 // --- State ---
 let currentScenario: Scenario | null = null;
@@ -14,7 +15,8 @@ let currentScenarioId = '1';
 const scenarios: { [key: string]: { new(): Scenario } } = {
     '1': Scenario1,
     '2': Scenario2,
-    '3': Scenario3
+    '3': Scenario3,
+    '4': Scenario4
 };
 
 // --- DOM References ---
@@ -104,6 +106,7 @@ window.addEventListener('resize', () => {
 const tab1 = document.getElementById('tab-1')!;
 const tab2 = document.getElementById('tab-2')!;
 const tab3 = document.getElementById('tab-3')!;
+const tab4 = document.getElementById('tab-4')!;
 const titleEl = document.getElementById('scenario-title')!;
 const descEl = document.getElementById('scenario-desc')!;
 const restartBtn = document.getElementById('restart-btn')!;
@@ -111,7 +114,7 @@ const restartBtn = document.getElementById('restart-btn')!;
 function setActiveTab(id: string) {
     // Reset all
     currentScenarioId = id;
-    [tab1, tab2, tab3].forEach(t => t.classList.remove('active'));
+    [tab1, tab2, tab3, tab4].forEach(t => t.classList.remove('active'));
 
     if (id === '1') {
         tab1.classList.add('active');
@@ -125,6 +128,10 @@ function setActiveTab(id: string) {
         tab3.classList.add('active');
         titleEl.textContent = 'Asymmetric Triplet';
         descEl.textContent = 'Three observers move at different distances. L goes 2x dist, R goes 3x dist of S (Base). All return to origin eventually.';
+    } else if (id === '4') {
+        tab4.classList.add('active');
+        titleEl.textContent = 'Asymmetric Speeds';
+        descEl.textContent = 'Three observers move the SAME distance from center but at different speeds. L moves 2x faster, R moves 4x faster than S. They return at different times.';
     }
 }
 
@@ -141,6 +148,11 @@ tab2.onclick = () => {
 tab3.onclick = () => {
     loadScenario('3');
     setActiveTab('3');
+};
+
+tab4.onclick = () => {
+    loadScenario('4');
+    setActiveTab('4');
 };
 
 restartBtn.onclick = () => {
