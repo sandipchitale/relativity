@@ -208,8 +208,12 @@ export class Scenario1 implements Scenario {
         }
 
         // Finish check
+        // Finish check
         if (this.state.timeS >= tReturn) {
             this.state.isFinished = true;
+            // Clamp values to ensure exact equality at the end
+            this.state.timeS = tReturn;
+            this.state.timeR = (tReturn - tHandoff) / gamma;
             this.clockR.group.position.set(0, 0, 0);
         }
 
@@ -233,7 +237,7 @@ export class Scenario1 implements Scenario {
             this.clockR.mesh.material.opacity = 0.3;
             // this.clockR.mesh.material.transparent = true; 
         } else {
-            this.clockR.labelDiv.textContent = `R\n\u03C4: ${this.state.timeR.toFixed(2)}`;
+            this.clockR.labelDiv.textContent = `R\n\u03C4: ${this.state.timeR.toFixed(2)} + ${this.state.timeL.toFixed(2)}`;
             this.clockR.mesh.material.opacity = 1.0;
             // this.clockR.mesh.material.transparent = false;
         }
