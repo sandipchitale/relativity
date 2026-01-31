@@ -35,8 +35,7 @@ export class Scenario3 implements Scenario {
         this.scene = scene;
 
         // Grid
-        const gridHelper = new THREE.GridHelper(80, 80, 0x444444, 0x222222);
-        this.scene.add(gridHelper);
+
 
         // Distances: S=1x, L=2x, R=3x
         // Vertical Offsets: S=2, L=5, R=8

@@ -33,8 +33,7 @@ export class Scenario2 implements Scenario {
         this.scene = scene;
 
         // Grid
-        const gridHelper = new THREE.GridHelper(50, 50, 0x444444, 0x222222);
-        this.scene.add(gridHelper);
+
 
         this.observers['S'] = this.createPointClock(0x3498db, 'S', 2.0); // Lowest
         this.observers['L'] = this.createPointClock(0x2ecc71, 'L', 5.0); // Mid
