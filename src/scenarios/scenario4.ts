@@ -19,14 +19,14 @@ export class Scenario4 implements Scenario {
         isFinished: false
     };
 
-    private startConfig = {
+    private config = {
         v: 0.2, // Base velocity for S. Note: R will be 4*v, so max v is ~0.24
         distance: 5,
         speed: 2,
         paused: false
     };
 
-    private config = { ...this.startConfig };
+    private markerGroup: THREE.Group = new THREE.Group();
 
     constructor() {}
 
@@ -42,6 +42,9 @@ export class Scenario4 implements Scenario {
         this.scene.add(this.observers['S'].group);
         this.scene.add(this.observers['L'].group);
         this.scene.add(this.observers['R'].group);
+
+        // Turnaround Markers
+        this.scene.add(this.markerGroup);
 
         // Tracks (Lines showing paths)
         this.createTracks();
@@ -108,6 +111,23 @@ export class Scenario4 implements Scenario {
         return { group, labelDiv: div, mesh };
     }
 
+    updateMarkers() {
+        this.markerGroup.clear();
+        const D = this.config.distance;
+        const angles = [Math.PI/2, Math.PI/2 + 2*Math.PI/3, Math.PI/2 + 4*Math.PI/3];
+        
+        const geometry = new THREE.SphereGeometry(0.05, 16, 16);
+        const material = new THREE.MeshBasicMaterial({ color: 0xff00ff }); // Pink
+
+        angles.forEach(angle => {
+            const mesh = new THREE.Mesh(geometry, material);
+            const x = D * Math.cos(angle);
+            const z = -D * Math.sin(angle);
+            mesh.position.set(x, 0, z);
+            this.markerGroup.add(mesh);
+        });
+    }
+
     reset() {
         this.state = {
             timeLab: 0,
@@ -121,10 +141,11 @@ export class Scenario4 implements Scenario {
             this.observers[k].group.position.set(0,0,0);
             this.observers[k].labelDiv.textContent = `${k}\n0.00`;
         });
+        this.updateMarkers();
     }
 
     update(dt: number) {
-        if (this.config.paused) return;
+        if (this.state.isFinished || this.config.paused) return;
 
         const simDt = dt * this.config.speed;
         this.state.timeLab += simDt;
@@ -156,30 +177,31 @@ export class Scenario4 implements Scenario {
             'R': { v: vR, gamma: gammaR, angle: Math.PI/2 + 4*Math.PI/3 }
         };
 
-        let allFinished = true;
+        // Determine if finished (S is slowest, determines max time)
+        const tHalfS = D / vS;
+        const tTotalS = 2 * tHalfS;
+        
+        if (this.state.timeLab >= tTotalS - 0.001) {
+            this.state.timeLab = tTotalS;
+            this.state.isFinished = true;
+        }
 
+        // Iterate
         for (const [key, conf] of Object.entries(obsConfigs)) {
             const tHalf = D / conf.v;
             const tReturn = 2 * tHalf;
 
             let currentDist = 0;
-            // Proper time calculation is tricky if we just sum dt. 
-            // Better to calculate closed form from timeLab:
-            // tau = tLab / gamma (during flight)
-            // if finished, tau = tTotal / gamma + (timeLab - tTotal)
-            
             let currentAge = 0;
 
             if (this.state.timeLab <= tHalf) {
                 // Outbound
                 currentDist = conf.v * this.state.timeLab;
                 currentAge = this.state.timeLab / conf.gamma;
-                allFinished = false;
             } else if (this.state.timeLab <= tReturn) {
                 // Return
                 currentDist = D - (conf.v * (this.state.timeLab - tHalf));
                 currentAge = this.state.timeLab / conf.gamma;
-                allFinished = false;
             } else {
                 // Finished
                 currentDist = 0;
@@ -197,12 +219,6 @@ export class Scenario4 implements Scenario {
             const z = -currentDist * Math.sin(conf.angle);
             this.observers[key].group.position.set(x, 0, z);
             this.observers[key].labelDiv.textContent = `${key}\n${currentAge.toFixed(2)}`;
-        }
-
-        if (allFinished && !this.state.isFinished) {
-            this.state.isFinished = true;
-            // Optional: Pause when all done?
-            // this.config.paused = true;
         }
 
         // DOM
@@ -233,6 +249,7 @@ export class Scenario4 implements Scenario {
         
         this.labelElements.forEach(el => el.parentElement?.removeChild(el));
         this.labelElements = [];
+        this.markerGroup.clear();
 
         while(this.scene.children.length > 0){ 
             this.scene.remove(this.scene.children[0]); 

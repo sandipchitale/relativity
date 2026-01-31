@@ -29,13 +29,14 @@ export class Scenario3 implements Scenario {
 
     private config = { ...this.startConfig };
 
+    private markerGroup: THREE.Group = new THREE.Group();
+
     constructor() {}
 
     init(scene: THREE.Object3D, camera: THREE.PerspectiveCamera, _controls: any, guiContainer: HTMLElement) {
         this.scene = scene;
 
-        // Grid
-
+        // Grid removed previously
 
         // Distances: S=1x, L=2x, R=3x
         // Vertical Offsets: S=2, L=5, R=8
@@ -46,6 +47,9 @@ export class Scenario3 implements Scenario {
         this.scene.add(this.observers['S'].group);
         this.scene.add(this.observers['L'].group);
         this.scene.add(this.observers['R'].group);
+
+        // Turnaround Markers
+        this.scene.add(this.markerGroup);
 
         // Tracks (Lines showing paths)
         this.createTracks();
@@ -125,6 +129,29 @@ export class Scenario3 implements Scenario {
         return { group, labelDiv: div, mesh };
     }
 
+    updateMarkers() {
+        this.markerGroup.clear();
+        const BaseD = this.config.distance;
+        
+        const config = [
+             { mult: 1, angle: Math.PI/2 },
+             { mult: 2, angle: Math.PI/2 + 2*Math.PI/3 },
+             { mult: 3, angle: Math.PI/2 + 4*Math.PI/3 }
+        ];
+
+        const geometry = new THREE.SphereGeometry(0.05, 16, 16);
+        const material = new THREE.MeshBasicMaterial({ color: 0xff00ff }); // Pink
+
+        config.forEach(c => {
+            const mesh = new THREE.Mesh(geometry, material);
+            const D = BaseD * c.mult;
+            const x = D * Math.cos(c.angle);
+            const z = -D * Math.sin(c.angle);
+            mesh.position.set(x, 0, z);
+            this.markerGroup.add(mesh);
+        });
+    }
+
     reset() {
         this.state = {
             timeLab: 0,
@@ -138,10 +165,11 @@ export class Scenario3 implements Scenario {
             this.observers[k].group.position.set(0,0,0);
             this.observers[k].labelDiv.textContent = `${k}\n0.00`;
         });
+        this.updateMarkers();
     }
 
     update(dt: number) {
-        if (this.config.paused) return;
+        if (this.state.isFinished || this.config.paused) return;
 
         const simDt = dt * this.config.speed;
         this.state.timeLab += simDt;
@@ -157,10 +185,10 @@ export class Scenario3 implements Scenario {
         const maxD = BaseD * maxMult;
         const maxTime = 2 * (maxD / v);
 
-        if (this.state.timeLab >= maxTime) {
+        // Check for finish first to clamp
+        if (this.state.timeLab >= maxTime - 0.001) {
             this.state.timeLab = maxTime;
-            this.config.paused = true;
-            this.gui.controllers.find(c => c.property === 'paused')?.updateDisplay();
+            this.state.isFinished = true;
         }
 
         // Configs for each
@@ -171,8 +199,6 @@ export class Scenario3 implements Scenario {
         };
 
         // Update each
-        let allReturned = true;
-
         for (const [key, conf] of Object.entries(observersConfig)) {
             const D = BaseD * conf.mult;
             const tHalf = D / v;
@@ -185,13 +211,11 @@ export class Scenario3 implements Scenario {
                 // Outbound
                 currentDist = v * this.state.timeLab;
                 currentAge = this.state.timeLab / gamma;
-                allReturned = false;
             } else if (this.state.timeLab <= tReturn) {
                 // Inbound
                 const timeReturn = this.state.timeLab - tHalf;
                 currentDist = D - (v * timeReturn);
                 currentAge = this.state.timeLab / gamma;
-                allReturned = false;
             } else {
                 // Return
                 currentDist = 0;
@@ -211,8 +235,6 @@ export class Scenario3 implements Scenario {
             this.observers[key].labelDiv.textContent = `${key}\n${currentAge.toFixed(2)}`;
         }
 
-        this.state.isFinished = allReturned;
-
         // DOM
         document.getElementById('val-lab')!.innerText = this.state.timeLab.toFixed(2);
         document.getElementById('val-s')!.innerText = this.state.ageS.toFixed(2);
@@ -224,6 +246,8 @@ export class Scenario3 implements Scenario {
         if(this.gui) this.gui.destroy();
         this.labelElements.forEach(el => el.parentElement?.removeChild(el));
         this.labelElements = [];
+        this.markerGroup.clear();
+
         while(this.scene.children.length > 0){ 
             this.scene.remove(this.scene.children[0]); 
         }

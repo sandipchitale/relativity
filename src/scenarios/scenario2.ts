@@ -27,6 +27,8 @@ export class Scenario2 implements Scenario {
 
     private config = { ...this.startConfig };
 
+    private markerGroup: THREE.Group = new THREE.Group();
+
     constructor() {}
 
     init(scene: THREE.Object3D, camera: THREE.PerspectiveCamera, _controls: any, guiContainer: HTMLElement) {
@@ -42,6 +44,9 @@ export class Scenario2 implements Scenario {
         this.scene.add(this.observers['S'].group);
         this.scene.add(this.observers['L'].group);
         this.scene.add(this.observers['R'].group);
+
+        // Turnaround Markers
+        this.scene.add(this.markerGroup);
 
         // Tracks (Lines showing paths)
         this.createTracks();
@@ -121,6 +126,23 @@ export class Scenario2 implements Scenario {
         return { group, labelDiv: div, mesh };
     }
 
+    updateMarkers() {
+        this.markerGroup.clear();
+        const D = this.config.distance;
+        const angles = [Math.PI/2, Math.PI/2 + 2*Math.PI/3, Math.PI/2 + 4*Math.PI/3];
+        
+        const geometry = new THREE.SphereGeometry(0.05, 16, 16);
+        const material = new THREE.MeshBasicMaterial({ color: 0xff00ff }); // Pink
+
+        angles.forEach(angle => {
+            const mesh = new THREE.Mesh(geometry, material);
+            const x = D * Math.cos(angle);
+            const z = -D * Math.sin(angle);
+            mesh.position.set(x, 0, z);
+            this.markerGroup.add(mesh);
+        });
+    }
+
     reset() {
         this.state = {
             timeLab: 0,
@@ -133,6 +155,7 @@ export class Scenario2 implements Scenario {
             this.observers[k].group.position.set(0,0,0);
             this.observers[k].labelDiv.textContent = `${k}\n0.00`;
         });
+        this.updateMarkers();
     }
 
     update(dt: number) {
@@ -155,13 +178,14 @@ export class Scenario2 implements Scenario {
         if (this.state.timeLab <= tHalf) {
             // Outbound
             currentDist = v * this.state.timeLab;
-        } else if (this.state.timeLab <= tTotal) {
-            // Inbound
+        } else if (this.state.timeLab < tTotal - 0.0001) { // Epsilon check
+             // Inbound
             const timeReturn = this.state.timeLab - tHalf;
             currentDist = D - (v * timeReturn);
         } else {
             // Finished
             currentDist = 0;
+            this.state.timeLab = tTotal; // Clamp lab time
             this.state.isFinished = true;
         }
 
@@ -197,6 +221,7 @@ export class Scenario2 implements Scenario {
         
         this.labelElements.forEach(el => el.parentElement?.removeChild(el));
         this.labelElements = [];
+        this.markerGroup.clear();
 
         while(this.scene.children.length > 0){ 
             this.scene.remove(this.scene.children[0]); 
