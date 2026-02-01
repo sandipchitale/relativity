@@ -31,7 +31,7 @@ export class Scenario2 implements Scenario {
 
     constructor() {}
 
-    init(scene: THREE.Object3D, camera: THREE.PerspectiveCamera, _controls: any, guiContainer: HTMLElement) {
+    init(scene: THREE.Object3D, camera: THREE.PerspectiveCamera, controls: any, guiContainer: HTMLElement) {
         this.scene = scene;
 
         // Grid
@@ -75,8 +75,13 @@ export class Scenario2 implements Scenario {
         `;
         
         // Adjust camera to look down slightly more
-        camera.position.set(0, 30, 30);
+        camera.position.set(0, 50, 50);
         camera.lookAt(0, 0, 0);
+
+        if (controls) {
+            controls.target.set(0, 0, 0);
+            controls.update();
+        }
 
         this.reset();
     }
