@@ -113,12 +113,12 @@ export class Scenario1 implements Scenario {
         `;
         
         // Cam reset (Looking at XY plane)
-        // Center view on middle of scenario (~25 units up) to frame 0..50 nicely.
-        camera.position.set(0, 25, 120); 
-        camera.lookAt(0, 25, 0);
+        // Center view lower to move (0,0) up in the viewport.
+        camera.position.set(0, 15, 120); 
+        camera.lookAt(0, 15, 0);
 
         if (controls) {
-            controls.target.set(0, 25, 0);
+            controls.target.set(0, 15, 0);
             controls.update();
         }
         
